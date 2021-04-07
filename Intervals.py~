@@ -1,0 +1,156 @@
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
+#METAPROJECT icerec/V05-01-00
+
+import os
+import numpy as np
+import ingredients as ING
+from scipy.stats import poisson
+
+TS = []
+
+mass = [100,200,350,500,750,1000,2500,5000,7500,10000,25000,50000,75000,100000]
+channel = [5,8,11,13]
+life = [0.00042,0.042,0.42,4.2]
+medmass = [10,100,1000,10000]
+
+#loop over all cases
+
+for Mass in range(14):
+
+    TS_dost = []
+
+    for Channel in range(4):
+
+        TS_dust = []
+
+        for Life in range(4):
+
+            TS_dist = []
+
+	    for Medmass in range(4):
+
+	        TS_dast = []
+
+	        for n_s in range(81):
+
+		    if os.path.isfile("/home/ctoennis/analyses/standard_analysis_framework/WIMP_TS/TS_m" + str(Mass) + "-med" + str(Medmass) + "-gl" + str(Life) + "-ch" + str(Channel) + "-ns"+ str(n_s)+".txt"):
+
+			TS_dast.append(ING.H1D.FromFile("/home/ctoennis/analyses/standard_analysis_framework/WIMP_TS/TS_m" + str(Mass) + "-med" + str(Medmass) + "-gl" + str(Life) + "-ch" + str(Channel) + "-ns"+ str(n_s)+".txt")) # get TS distributions
+		
+		    else:
+
+			TS_dast.append("none")
+
+		TS_dist.append(TS_dast)
+
+	    TS_dust.append(TS_dist)
+
+	TS_dost.append(TS_dust)
+	
+    TS.append(TS_dost)
+	
+pois = []
+
+print "poissonian is being calculated"
+
+#now reweight the distributions to take statistic variations into account
+
+for Mass in range(14):
+
+    pois_dost = []
+
+    for Channel in range(4):
+
+        pois_dust = []
+
+        for Life in range(4):
+
+            pois_dist = []
+
+            for Medmass in range(4):
+        
+	        pois_dast = []
+
+#		print(Mass,Channel,Life,Medmass)
+	  
+		if os.path.isfile("/home/ctoennis/analyses/standard_analysis_framework/WIMP_TS/TS_m" + str(Mass) + "-med" + str(Medmass) + "-gl" + str(Life) + "-ch" + str(Channel) + "-ns0.txt"):
+
+	            for n_s in [0.1*x for x in range(1,801)]:
+
+		        h_new = ING.H1D.Empty(TS[13][3][3][3][3].low, TS[13][3][3][3][3].high, TS[13][3][3][3][3].nbin)
+
+			for n_2 in range(81):
+
+			    if os.path.isfile("/home/ctoennis/analyses/standard_analysis_framework/WIMP_TS/TS_m" + str(Mass) + "-med" + str(Medmass) + "-gl" + str(Life) + "-ch" + str(Channel) + "-ns"+ str(n_2)+".txt"):
+
+				if TS[Mass][Channel][Life][Medmass][n_2] == "none":
+
+				    continue
+
+				h_new.AddH1(TS[Mass][Channel][Life][Medmass][n_2],poisson.pmf(n_2,n_s))
+
+			h_new.Write("/home/ctoennis/analyses/standard_analysis_framework/WIMP_TS/POIS_m" + str(Mass) + "-med" + str(Medmass) + "-gl" + str(Life) + "-ch" + str(Channel) + "_ns" +str(10*n_s) + ".txt")
+
+			pois_dast.append(h_new)
+
+		else:
+
+		    for n_s in [0.1*x for x in range(1,801)]:
+
+		        pois_dast.append("none")
+
+		pois_dist.append(pois_dast)
+
+	    pois_dust.append(pois_dist)
+
+	pois_dost.append(pois_dust)
+
+    pois.append(pois_dost)
+
+print "sensitivities are being calculated"
+
+#Now get the confidence intervals and set a sensitivity
+
+for Channel in range(4):
+
+    for Life in range(4):
+	
+        for Medmass in range(4):
+
+	    infile = open("/home/ctoennis/analyses/standard_analysis_framework/WIMP_TS/ns_limit_c" + str(channel[Channel]) + "_l" + str(life[Life]) + "_med" + str(medmass[Medmass]) + ".txt",'w')
+
+	    for Mass in range(14):
+
+
+	        if TS[Mass][Channel][Life][Medmass][0] == "none":
+
+		    continue
+	        
+                back  = TS[Mass][Channel][Life][Medmass][0].GetFCInterval(0.5)
+
+		limit = pois[Mass][Channel][Life][Medmass][0].nbin
+
+#		    print back
+
+		for n_s in range(1,800):
+
+		    if pois[Mass][Channel][Life][Medmass][n_s]=="none":
+
+			continue
+
+		    derp = pois[Mass][Channel][Life][Medmass][n_s].GetFCInterval(0.9)
+
+#		    print("derp: "+ str(derp))
+
+		    if derp[0] > back[1]:
+
+			limit = (n_s-1)*0.1
+
+			break
+
+		if limit > 100:
+
+		    continue
+
+		infile.write(str(Mass) + "    " + str(limit) + "\n")
+                print str(Mass) + "    " + str(limit)

@@ -59,8 +59,6 @@ for mass in masslist:
 
 	        if os.path.isfile("/home/ctoennis/analyses/standard_analysis_framework/spectra_wimpsim/wa-sunsum-m" + str(mass) + "-ch" + str(channel) + "-x" + str(medmass) + "-l" + str(lifetime) + "-009080-000000-read-earth_e.dat"):
 
-#		    print("wa-sunsum-m" + str(mass) + "-ch" + str(channel) + "-x" + str(medmass) + "-l" + str(lifetime) + "-009080-000000-read-earth_e.dat " + "exists")
-
 	            spe_e.append(ING.Graph.FromFile("/home/ctoennis/analyses/standard_analysis_framework/spectra_wimpsim/wa-sunsum-m" + str(mass) + "-ch" + str(channel) + "-x" + str(medmass) + "-l" + str(lifetime) + "-009080-000000-read-earth_e.dat"))
 		    Nxxx_e.append(spe_e[-1].Integral(spe_e[-1].points[0][0],spe_e[-1].points[-1][0]))
 		    spe_ae.append(ING.Graph.FromFile("/home/ctoennis/analyses/standard_analysis_framework/spectra_wimpsim/wa-sunsum-m" + str(mass) + "-ch" + str(channel) + "-x" + str(medmass) + "-l" + str(lifetime) + "-009080-000000-read-earth_ae.dat"))
@@ -119,6 +117,7 @@ for mass in masslist:
 Acc_casc    = ING.H1D.Empty(-1.0*np.pi,np.pi,180)
 Acc_track   = ING.H1D.Empty(-1.0*np.pi,np.pi,180)
 
+#Sun visibility versus devlination
 
 hsun = ING.H1D.FromFile("/home/ctoennis/analyses/standard_analysis_framework/Signal_Ingredients/HSun.txt")
 
@@ -140,14 +139,16 @@ for filename in os.listdir("/data/ana/analyses/northern_tracks/version-002-p00")
 	if "IC59" in filename:
 
 	    live = 348.138
+	    continue #skip IC59
 
 	elif "IC79" in filename:
 
 	    live = 310.000
+	    continue #skip IC79
 
 	elif "2011" in filename:
 
-	    live = 342.0883333
+	    live = 342.0883333 #livetime in days
 
 	else:
 
@@ -157,7 +158,7 @@ for filename in os.listdir("/data/ana/analyses/northern_tracks/version-002-p00")
 
 	infile = np.load("/data/ana/analyses/northern_tracks/version-002-p00/"+filename,"r")
 		
-	nevents = len(infile["orig_OW"])
+	nevents = len(infile["orig_OW"]) #events in the MC file
 
 #	print nevents
 	for entry in infile:
@@ -195,7 +196,7 @@ for filename in os.listdir("/data/ana/analyses/northern_tracks/version-002-p00")
 
 					if mctype == 68 or mctype == 14:
 
-					    track[k][j][i][l] += weight*spectrum_mu[k][j][i][l].Eval(mcen/masslist[k])/((N_mu[k][j][i][l]+N_amu[k][j][i][l])*masslist[k])
+					    track[k][j][i][l] += weight*spectrum_mu[k][j][i][l].Eval(mcen/masslist[k])/((N_mu[k][j][i][l]+N_amu[k][j][i][l])*masslist[k]) #separate treatment of neutrinos and antineutrinos
 
 					else:
 				    
@@ -213,7 +214,7 @@ for medmass in medmasslist:
 
         for channel in channellist:
 
-	    outfi.append(open("/home/ctoennis/analyses/standard_analysis_framework/northern_ing/ACC_med" + str(medmass) + "_lifetime" + str(lifetime) + "_channel" + str(channel) + ".txt","w"))
+	    outfi.append(open("/home/ctoennis/analyses/standard_analysis_framework/northern_ing/ACC_med" + str(medmass) + "_lifetime" + str(lifetime) + "_channel" + str(channel) + ".txt","w")) 
 
 	outfil.append(outfi)
 
@@ -229,7 +230,7 @@ for k in range(len(masslist)):
 
 	        if not spectrum_mu[k][j][i][l] == "None":
 
-	            outfile[j][i][l].write(str(masslist[k]) + "    " + str(track[k][j][i][l]) + "\n")
+	            outfile[j][i][l].write(str(masslist[k]) + "    " + str(track[k][j][i][l]) + "\n") #frite output to simple text file
 	   
 
 

@@ -2,7 +2,7 @@
 #METAPROJECT icerec/V05-01-00
 
 import numpy as np
-import ingredients as ING
+import src/ING as ING
 from scipy.stats import poisson
 import os
 

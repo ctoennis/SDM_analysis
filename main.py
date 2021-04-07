@@ -7,10 +7,10 @@ import sys
 import os
 import argparse
 
-import PEs as PE #in this file the PE generation is handled
-import ingredients as ING #histogram implementation
-import Likelihoods as LLH #contains different likelihood functions, mainly used by TestStatistics.py
-import TestStatistic as TS #contains a TS distribution class that can generate PEs and add the TS to a histogram
+import src/PEs as PE #in this file the PE generation is handled
+import src/ING as ING #histogram implementation
+import src/LLH as LLH #contains different likelihood functions, mainly used by TestStatistics.py
+import src/TS as TS #contains a TS distribution class that can generate PEs and add the TS to a histogram
 
 #first specify the WIMP mass and lifetime case you want to simulate. Aslo get the number of fake signal events to be generated
 
@@ -65,7 +65,6 @@ for mass in masslist: #[100,200,350,500,750,1000,2500,5000,7500,10000,25000,5000
 
 	    for medmass in medmasslist: #[10,100,1000,10000]:
 
-	    #	        print "/home/ctoennis/analyses/standard_analysis_framework/northern_ing/WIMP/ENE_m" + str(mass) + "_c" + str(channel) + "_l" + str(life) + "_med" + str(medmass) + ".txt"
 
 	        if os.path.isfile("/home/ctoennis/analyses/standard_analysis_framework/northern_ing/wimp_newspectra/ENERGY_track_m" + str(mass) +  "_med" + str(medmass) + "_l" + str(life) + "_ch" + str(channel) + ".txt"):
 	  	    
@@ -88,7 +87,6 @@ for mass in masslist: #[100,200,350,500,750,1000,2500,5000,7500,10000,25000,5000
     PSF_track.append(a3)
     ENE_track.append(b3)
 
-#print PSF_track[Mass][Channel][Life][Medmass]
 
 BG_track      = ING.H1D.FromFile("/home/ctoennis/analyses/standard_analysis_framework/northern_ing/Background_WIMP.txt")
 ENE_BG_track  = ING.H1D.FromFile("/home/ctoennis/analyses/standard_analysis_framework/northern_ing/Background_WIMP_ene.txt")
@@ -101,16 +99,9 @@ n_bg_track   = sum(BG_track.content)/2.0
 
 BG_track.Scale(BG_track.nbin/BG_track.integral)
 
-#print BG_track.integral
-#print ENE_BG_track.integral
-#print sum(PSF_track[Mass][Channel][Life][Medmass].content)
-#print sum(ENE_track[Mass][Channel][Life][Medmass].content)
-
-#see if you want to do one single job or loop over all mass cases
-
 if loop == 0:
 
-    dist = TS.TSdist(PSF_track[Mass][Channel][Life][Medmass],ENE_track[Mass][Channel][Life][Medmass],BG_track,ENE_BG_track,PSF_track[Mass][Channel][Life][Medmass],ENE_track[Mass][Channel][Life][Medmass],BG_track,ENE_BG_track,n_bg_track,0.0) #This is a TS distribution class
+    dist = TS.TSdist(PSF_track[Mass][Channel][Life][Medmass],ENE_track[Mass][Channel][Life][Medmass],BG_track,ENE_BG_track,PSF_track[Mass][Channel][Life][Medmass],ENE_track[Mass][Channel][Life][Medmass],BG_track,ENE_BG_track,n_bg_track,0.0) #This is a TS distribution class. It takes the ingredientss for the likelihood and handles calculating TS distributions
 
     if PSF_track[Mass][Channel][Life][Medmass] == "none" or ENE_track[Mass][Channel][Life][Medmass] == "none":
 
@@ -121,7 +112,7 @@ if loop == 0:
         dist.AddPE(n_s) #Generate PE and add entry to TS distribution
 
     dist.TS.Scale(1.0/dist.TS.integral) #normalize
-    dist.TS.Write("/home/ctoennis/analyses/standard_analysis_framework/new_TS/TS_m" + str(masslist[Mass]) + "-med" + str(medmasslist[Medmass]) + "-gl" + str(lifetimelist[Life]) + "-ch" + str(channellist[Channel]) + "-ns"+ str(n_s)+".txt")
+    dist.TS.Write("/home/ctoennis/analyses/standard_analysis_framework/new_TS/TS_m" + str(masslist[Mass]) + "-med" + str(medmasslist[Medmass]) + "-gl" + str(lifetimelist[Life]) + "-ch" + str(channellist[Channel]) + "-ns"+ str(n_s)+".txt") #the raw TS distributions are saved and later analysed with Intervals.py
     dist.NS.Write("/home/ctoennis/analyses/standard_analysis_framework/new_TS/NS_m" + str(masslist[Mass]) + "-med" + str(medmasslist[Medmass]) + "-gl" + str(lifetimelist[Life]) + "-ch" + str(channellist[Channel]) + "-ns"+ str(n_s)+".txt")
 
 

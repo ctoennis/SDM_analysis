@@ -2,7 +2,7 @@
 #METAPROJECT icerec/V05-01-00
 
 import numpy as np
-import ingredients as ING
+import src/ING as ING
 import h5py
 import os
 
@@ -12,11 +12,10 @@ hsun.Scale(hsun.nbin*1.0/(hsun.integral))
 
 track = ING.H1D.Empty(0.0,200000.0,2000)
 
-#norm = [1.0/(np.sin(np.radians(x))) for x in casc.center]
 
 for filename in os.listdir("/data/ana/analyses/northern_tracks/version-002-p00/"):
 
-    if "exp.npy" in filename:
+    if "exp.npy" in filename and "IC86" in filename: #only use IC86 data files
 
 	infile = np.load("/data/ana/analyses/northern_tracks/version-002-p00/"+filename,"r")
 
